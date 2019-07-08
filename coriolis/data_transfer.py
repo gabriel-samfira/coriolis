@@ -42,3 +42,16 @@ def encode_data(msg_id, path, offset, content, compress=True):
 
 def encode_eod(msg_id):
     return struct.pack("<I", msg_id) + struct.pack("<I", 0)
+
+
+def gzip_data(content):
+    compressed = zlib.compress(content)
+    data_len = len(compressed)
+    data_len_inflated = len(content)
+    compression_saving = 100.0 * (1 - float(data_len) / data_len_inflated)
+    LOG.debug("Compression space saving: {:.02f}%".format(
+        compression_saving))
+    if data_len > data_len_inflated:
+        return (False, content)
+
+    return (True, compressed)
