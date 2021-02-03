@@ -36,7 +36,6 @@ IPV6_FAILURE_FATAL=no
 NAME=%(device_name)s
 DEVICE=%(device_name)s
 ONBOOT=yes
-NM_CONTROLLED=no
 """
 
 

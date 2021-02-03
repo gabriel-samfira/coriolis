@@ -2,6 +2,7 @@
 # All Rights Reserved.
 
 import re
+import json
 
 from oslo_log import log as logging
 
@@ -16,9 +17,16 @@ CENTOS_DISTRO_IDENTIFIER = "CentOS"
 class CentOSOSDetectTools(base.BaseLinuxOSDetectTools):
 
     def detect_os(self):
+        os_release = self._get_os_release()
         info = {}
         redhat_release_path = "etc/redhat-release"
-        if self._test_path(redhat_release_path):
+        if os_release:
+            version = os_release.get("VERSION_ID")
+            if not version:
+                return {}
+            friendly_name = os_release.get("PRETTY_NAME", "%s Version %s" % (
+                    CENTOS_DISTRO_IDENTIFIER, version))
+        elif self._test_path(redhat_release_path):
             release_info = self._read_file(
                 redhat_release_path).decode().splitlines()
             if release_info:
@@ -31,10 +39,14 @@ class CentOSOSDetectTools(base.BaseLinuxOSDetectTools):
                             "Distro does not appear to be a CentOS: %s", distro)
                         return {}
 
-                    info = {
-                        "os_type": constants.OS_TYPE_LINUX,
-                        "distribution_name": CENTOS_DISTRO_IDENTIFIER,
-                        "release_version": version,
-                        "friendly_release_name": "%s Version %s" % (
-                            CENTOS_DISTRO_IDENTIFIER, version)}
+                    friendly_name = "%s Version %s" % (
+                        CENTOS_DISTRO_IDENTIFIER, version)
+        else:
+            return {}
+
+        info = {
+            "os_type": constants.OS_TYPE_LINUX,
+            "distribution_name": CENTOS_DISTRO_IDENTIFIER,
+            "release_version": version,
+            "friendly_release_name": friendly_name}
         return info
